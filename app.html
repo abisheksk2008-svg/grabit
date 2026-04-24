@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0D0D0D" />
+    <meta name="description" content="GRAB IT helps users discover nearby discounts from local shops." />
+    <title>GRAB IT</title>
+    <style>
+      :root {
+        --bg: #0d0d0d;
+        --card: rgba(26, 26, 26, 0.86);
+        --card-solid: #1a1a1a;
+        --text: #ffffff;
+        --muted: #a1a1aa;
+        --line: rgba(255, 255, 255, 0.08);
+        --primary: #ff6b00;
+        --primary-soft: rgba(255, 107, 0, 0.18);
+        --shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+        --font-stack: "Segoe UI", "SF Pro Display", "Helvetica Neue", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font-stack);
+      }
+
+      body {
+        overflow-x: hidden;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+        border: 0;
+      }
+
+      .app-shell {
+        min-height: 100vh;
+        padding: 24px 14px 40px;
+        position: relative;
+        background:
+          radial-gradient(circle at top left, rgba(255, 107, 0, 0.18), transparent 26%),
+          radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.08), transparent 18%),
+          linear-gradient(180deg, #111111 0%, #090909 100%);
+      }
+
+      .ambient {
+        position: fixed;
+        border-radius: 999px;
+        filter: blur(70px);
+        opacity: 0.35;
+        pointer-events: none;
+      }
+
+      .ambient-one {
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 107, 0, 0.35);
+        top: 3%;
+        right: -80px;
+      }
+
+      .ambient-two {
+        width: 180px;
+        height: 180px;
+        background: rgba(255, 255, 255, 0.08);
+        bottom: 8%;
+        left: -90px;
+      }
+
+      .phone-frame {
+        width: min(100%, 430px);
+        min-height: calc(100vh - 64px);
+        margin: 0 auto;
+        position: relative;
+        background: rgba(10, 10, 10, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 32px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        backdrop-filter: blur(18px);
+      }
+
+      .screen {
+        position: absolute;
+        inset: 0;
+        padding: 26px 18px calc(26px + env(safe-area-inset-bottom));
+        opacity: 0;
+        transform: translateY(22px) scale(0.985);
+        pointer-events: none;
+        transition: opacity 320ms ease, transform 320ms ease;
+        overflow-y: auto;
+        scrollbar-width: none;
+      }
+
+      .screen::-webkit-scrollbar,
+      .owner-panel::-webkit-scrollbar,
+      .filters-row::-webkit-scrollbar {
+        display: none;
+      }
+
+      .screen.active {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: auto;
+      }
+
+      .glass-card {
+        background: var(--card);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 20px 55px rgba(0, 0, 0, 0.25);
+      }
+
+      .brand-chip,
+      .eyebrow,
+      .hero-tag,
+      .deal-category,
+      .expiry-tag,
+      .visual-panel span {
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .brand-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        font-size: 0.84rem;
+        margin-bottom: 18px;
+      }
+
+      .auth-screen {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .auth-card {
+        border-radius: 28px;
+        padding: 24px;
+      }
+
+      .auth-copy h1 {
+        margin: 0;
+        font-size: clamp(2rem, 8vw, 2.7rem);
+        line-height: 1;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--primary);
+        font-size: 0.72rem;
+      }
+
+      .subtext,
+      .deal-shop,
+      .deal-savings,
+      .otp-meta,
+      .visual-panel span,
+      .advanced-filters span,
+      label span {
+        color: var(--muted);
+      }
+
+      .subtext {
+        margin: 12px 0 0;
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+
+      .auth-visual {
+        margin: 28px 0 24px;
+        height: 180px;
+        position: relative;
+        border-radius: 24px;
+        overflow: hidden;
+        background:
+          linear-gradient(135deg, rgba(255, 107, 0, 0.2), transparent 65%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+      }
+
+      .visual-orb {
+        position: absolute;
+        width: 170px;
+        height: 170px;
+        right: -30px;
+        top: -20px;
+        background: radial-gradient(circle, rgba(255, 107, 0, 0.9) 0%, rgba(255, 107, 0, 0.15) 40%, transparent 70%);
+        filter: blur(6px);
+      }
+
+      .visual-panel {
+        position: absolute;
+        left: 18px;
+        bottom: 18px;
+        right: 18px;
+        padding: 18px;
+        border-radius: 20px;
+        background: rgba(7, 7, 7, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .visual-panel strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 1.35rem;
+      }
+
+      .auth-actions,
+      .form-actions {
+        display: grid;
+        gap: 12px;
+      }
+
+      .action-button,
+      .inline-button,
+      .grab-button {
+        min-height: 54px;
+        border-radius: 18px;
+        font-weight: 700;
+        transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+      }
+
+      .action-button:hover,
+      .inline-button:hover,
+      .grab-button:hover,
+      .filter-pill:hover,
+      .avatar-button:hover,
+      .icon-button:hover {
+        transform: translateY(-1px);
+      }
+
+      .google-button {
+        background: #ffffff;
+        color: #111111;
+      }
+
+      .phone-button,
+      .inline-button,
+      .grab-button {
+        background: linear-gradient(135deg, #ff7c1f, var(--primary));
+        color: #ffffff;
+        box-shadow: 0 18px 35px rgba(255, 107, 0, 0.28);
+      }
+
+      .ghost-button {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+      }
+
+      .google-mark {
+        width: 24px;
+        height: 24px;
+        display: inline-grid;
+        place-items: center;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #4285f4, #34a853);
+        color: white;
+        font-weight: 800;
+        margin-right: 10px;
+      }
+
+      .phone-flow {
+        margin-top: 18px;
+        padding-top: 18px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        transition: max-height 280ms ease, opacity 220ms ease, margin-top 220ms ease;
+      }
+
+      .phone-flow.open {
+        max-height: 260px;
+        opacity: 1;
+      }
+
+      .phone-flow-panel {
+        display: none;
+        animation: slideFade 260ms ease;
+      }
+
+      .phone-flow-panel.active {
+        display: block;
+      }
+
+      .field-label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      .phone-input-wrap,
+      .otp-input,
+      label input,
+      label select {
+        width: 100%;
+        min-height: 52px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        padding: 0 16px;
+      }
+
+      .phone-input-wrap {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .phone-input-wrap input {
+        background: transparent;
+        border: 0;
+        color: var(--text);
+        outline: none;
+      }
+
+      .inline-button {
+        width: 100%;
+        margin-top: 14px;
+      }
+
+      .otp-input {
+        text-align: center;
+        letter-spacing: 0.35em;
+        font-size: 1.15rem;
+      }
+
+      .otp-meta,
+      .section-heading,
+      .topbar,
+      .deal-topline,
+      .deal-footer,
+      .hero-meta,
+      .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .text-button {
+        background: none;
+        color: var(--text);
+        padding: 0;
+      }
+
+      .topbar h2,
+      .section-heading h3,
+      .panel-header h3 {
+        margin: 0;
+      }
+
+      .topbar {
+        margin-bottom: 18px;
+      }
+
+      .avatar-button,
+      .icon-button {
+        width: 44px;
+        height: 44px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+      }
+
+      .hero-card {
+        position: relative;
+        min-height: 220px;
+        border-radius: 28px;
+        overflow: hidden;
+        padding: 22px;
+        margin-bottom: 18px;
+        background:
+          linear-gradient(180deg, transparent 15%, rgba(0, 0, 0, 0.68) 100%),
+          radial-gradient(circle at top right, rgba(255, 174, 0, 0.8), transparent 28%),
+          linear-gradient(135deg, #5f2500, #171717 60%);
+      }
+
+      .hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.62));
+      }
+
+      .hero-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        height: 100%;
+      }
+
+      .hero-tag,
+      .deal-category {
+        display: inline-flex;
+        width: fit-content;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        font-size: 0.72rem;
+      }
+
+      .hero-content h3 {
+        margin: 10px 0 8px;
+        font-size: 2rem;
+        line-height: 1;
+        max-width: 220px;
+      }
+
+      .hero-meta {
+        justify-content: flex-start;
+        color: rgba(255, 255, 255, 0.88);
+        margin-bottom: 18px;
+      }
+
+      .grab-button {
+        width: fit-content;
+        padding: 0 20px;
+      }
+
+      .grab-button.secondary {
+        width: 100%;
+        min-height: 48px;
+        margin-top: 16px;
+      }
+
+      .filters-section {
+        display: grid;
+        gap: 12px;
+      }
+
+      .filters-row {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+      }
+
+      .filter-pill {
+        white-space: nowrap;
+        padding: 12px 16px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+        border: 1px solid transparent;
+      }
+
+      .filter-pill.active {
+        background: var(--primary-soft);
+        border-color: rgba(255, 107, 0, 0.34);
+        color: #ffd6b8;
+      }
+
+      .advanced-filters label {
+        min-width: 138px;
+      }
+
+      .advanced-filters select {
+        margin-top: 8px;
+      }
+
+      .section-heading {
+        margin: 22px 0 14px;
+      }
+
+      .deals-list,
+      .owner-deals {
+        display: grid;
+        gap: 14px;
+      }
+
+      .deal-card {
+        border-radius: 24px;
+        overflow: hidden;
+      }
+
+      .deal-image {
+        min-height: 150px;
+        background:
+          radial-gradient(circle at 85% 20%, rgba(255, 200, 87, 0.8), transparent 18%),
+          linear-gradient(135deg, rgba(255, 107, 0, 0.95), rgba(45, 18, 4, 0.85));
+      }
+
+      .deal-body {
+        padding: 16px;
+      }
+
+      .deal-title {
+        margin: 10px 0 6px;
+        font-size: 1.15rem;
+      }
+
+      .deal-shop {
+        margin: 0 0 14px;
+      }
+
+      .deal-discount {
+        color: #ffb072;
+        font-size: 1.15rem;
+      }
+
+      .deal-savings {
+        margin: 4px 0 0;
+        font-size: 0.9rem;
+      }
+
+      .expiry-tag {
+        font-size: 0.72rem;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        color: #dadada;
+      }
+
+      .expiry-tag.ending-soon {
+        background: rgba(255, 77, 79, 0.16);
+        color: #ff9a9b;
+      }
+
+      .favorite-btn.active {
+        background: rgba(255, 107, 0, 0.16);
+        color: #ffbf8d;
+      }
+
+      .owner-panel {
+        position: absolute;
+        inset: 0;
+        background: rgba(7, 7, 7, 0.96);
+        padding: 24px 18px;
+        transform: translateX(100%);
+        transition: transform 300ms ease;
+        overflow-y: auto;
+        z-index: 3;
+      }
+
+      .owner-panel.open {
+        transform: translateX(0);
+      }
+
+      .deal-form {
+        margin: 18px 0;
+        padding: 18px;
+        border-radius: 24px;
+        display: grid;
+        gap: 14px;
+      }
+
+      label {
+        display: block;
+      }
+
+      label span {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.88rem;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .owner-item {
+        padding: 16px;
+        border-radius: 20px;
+        background: var(--card-solid);
+        border: 1px solid var(--line);
+      }
+
+      .owner-item h4,
+      .owner-item p {
+        margin: 0;
+      }
+
+      .owner-item p {
+        margin-top: 8px;
+        color: var(--muted);
+      }
+
+      .owner-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .owner-actions button {
+        flex: 1;
+        min-height: 42px;
+        border-radius: 14px;
+        color: var(--text);
+      }
+
+      .edit-btn {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .delete-btn {
+        background: rgba(255, 77, 79, 0.14);
+        color: #ffaeaf;
+      }
+
+      .empty-state {
+        padding: 26px 18px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.04);
+        text-align: center;
+        color: var(--muted);
+      }
+
+      @keyframes slideFade {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (min-width: 768px) {
+        .app-shell {
+          padding: 32px 20px 48px;
+        }
+
+        .phone-frame {
+          width: min(100%, 1200px);
+          min-height: calc(100vh - 80px);
+          display: grid;
+          grid-template-columns: 420px 1fr;
+          border-radius: 36px;
+        }
+
+        .auth-screen,
+        .home-screen {
+          padding: 32px 24px;
+        }
+
+        .auth-screen {
+          position: relative;
+          border-right: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .home-screen {
+          position: relative;
+          inset: auto;
+          opacity: 1;
+          transform: none;
+          pointer-events: auto;
+          display: none;
+        }
+
+        .home-screen.active {
+          display: block;
+        }
+
+        .auth-screen.hidden-desktop {
+          display: none;
+        }
+
+        .owner-panel {
+          width: 420px;
+          left: auto;
+        }
+
+        .deals-list {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="ambient ambient-one"></div>
+      <div class="ambient ambient-two"></div>
+
+      <main class="phone-frame">
+        <section class="screen auth-screen active" id="authScreen">
+          <div class="brand-chip">⚡ GRAB IT</div>
+          <div class="auth-card glass-card">
+            <div class="auth-copy">
+              <p class="eyebrow">Hyperlocal savings</p>
+              <h1>Find Deals Near You</h1>
+              <p class="subtext">Save money instantly from nearby shops</p>
+            </div>
+
+            <div class="auth-visual">
+              <div class="visual-orb"></div>
+              <div class="visual-panel">
+                <span>Trending near Kattur</span>
+                <strong>12 live deals</strong>
+              </div>
+            </div>
+
+            <div class="auth-actions">
+              <button class="action-button google-button" id="googleLoginBtn" type="button">
+                <span class="google-mark" aria-hidden="true">G</span>
+                Continue with Google
+              </button>
+
+              <button class="action-button phone-button" id="phoneLoginBtn" type="button">
+                <span aria-hidden="true">☎</span>
+                Continue with Phone
+              </button>
+            </div>
+
+            <div class="phone-flow" id="phoneFlow" aria-hidden="true">
+              <div class="phone-flow-panel active" data-step="phone">
+                <label class="field-label" for="phoneInput">Phone number</label>
+                <div class="phone-input-wrap">
+                  <span>+91</span>
+                  <input id="phoneInput" type="tel" inputmode="numeric" maxlength="10" placeholder="98765 43210" />
+                </div>
+                <button class="inline-button" id="sendOtpBtn" type="button">Send OTP</button>
+              </div>
+
+              <div class="phone-flow-panel" data-step="otp">
+                <label class="field-label" for="otpInput">Enter OTP</label>
+                <input id="otpInput" class="otp-input" type="text" inputmode="numeric" maxlength="6" placeholder="••••••" />
+                <div class="otp-meta">
+                  <span>Demo OTP: 246810</span>
+                  <button class="text-button" id="backToPhoneBtn" type="button">Edit number</button>
+                </div>
+                <button class="inline-button" id="verifyOtpBtn" type="button">Verify & continue</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen home-screen" id="homeScreen">
+          <header class="topbar">
+            <div>
+              <p class="eyebrow">Nearby now</p>
+              <h2>📍 Kattur</h2>
+            </div>
+            <button class="avatar-button" id="ownerToggleBtn" type="button" aria-label="Open owner dashboard">
+              GI
+            </button>
+          </header>
+
+          <section class="hero-card" id="heroCard">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+              <span class="hero-tag">Featured Deal</span>
+              <h3 id="heroTitle">50% OFF Pizza</h3>
+              <div class="hero-meta">
+                <span id="heroDistance">0.8 km</span>
+                <span id="heroSavings">Save ₹120</span>
+              </div>
+              <button class="grab-button" id="heroGrabBtn" type="button">GRAB NOW</button>
+            </div>
+          </section>
+
+          <section class="filters-section">
+            <div class="filters-row quick-filters" id="quickFilters"></div>
+            <div class="filters-row advanced-filters">
+              <label>
+                <span>Category</span>
+                <select id="categoryFilter"></select>
+              </label>
+              <label>
+                <span>Distance</span>
+                <select id="distanceFilter">
+                  <option value="all">Any</option>
+                  <option value="1">Under 1 km</option>
+                  <option value="2">Under 2 km</option>
+                  <option value="5">Under 5 km</option>
+                </select>
+              </label>
+              <label>
+                <span>Discount</span>
+                <select id="discountFilter">
+                  <option value="all">All</option>
+                  <option value="50">₹50+</option>
+                  <option value="100">₹100+</option>
+                  <option value="150">₹150+</option>
+                </select>
+              </label>
+            </div>
+          </section>
+
+          <section class="section-heading">
+            <div>
+              <p class="eyebrow">Fast picks</p>
+              <h3>Deals around you</h3>
+            </div>
+            <button class="text-button" id="favoritesToggleBtn" type="button">Saved only</button>
+          </section>
+
+          <section class="deals-list" id="dealsList"></section>
+        </section>
+
+        <aside class="owner-panel" id="ownerPanel" aria-hidden="true">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Shop owner</p>
+              <h3>Dashboard</h3>
+            </div>
+            <button class="icon-button" id="closeOwnerPanelBtn" type="button" aria-label="Close dashboard">✕</button>
+          </div>
+
+          <form class="deal-form glass-card" id="dealForm">
+            <input type="hidden" id="dealId" />
+            <label>
+              <span>Shop name</span>
+              <input id="shopName" type="text" required />
+            </label>
+            <label>
+              <span>Offer title</span>
+              <input id="offerTitle" type="text" required />
+            </label>
+            <div class="form-grid">
+              <label>
+                <span>Discount (₹)</span>
+                <input id="discountValue" type="number" min="1" required />
+              </label>
+              <label>
+                <span>Distance (km)</span>
+                <input id="distanceValue" type="number" min="0.1" step="0.1" required />
+              </label>
+            </div>
+            <div class="form-grid">
+              <label>
+                <span>Expiry</span>
+                <input id="expiryValue" type="datetime-local" required />
+              </label>
+              <label>
+                <span>Category</span>
+                <select id="categoryValue" required>
+                  <option value="Food">Food</option>
+                  <option value="Cafe">Cafe</option>
+                  <option value="Fashion">Fashion</option>
+                  <option value="Groceries">Groceries</option>
+                  <option value="Electronics">Electronics</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              <span>Visual theme</span>
+              <select id="imageTheme">
+                <option value="pizza">Pizza</option>
+                <option value="burger">Burger</option>
+                <option value="coffee">Coffee</option>
+                <option value="fashion">Fashion</option>
+                <option value="grocery">Grocery</option>
+              </select>
+            </label>
+            <div class="form-actions">
+              <button class="action-button phone-button" type="submit">Save deal</button>
+              <button class="action-button ghost-button" id="resetFormBtn" type="button">Reset</button>
+            </div>
+          </form>
+
+          <section class="owner-deals" id="ownerDeals"></section>
+        </aside>
+      </main>
+    </div>
+
+    <template id="dealCardTemplate">
+      <article class="deal-card glass-card">
+        <div class="deal-image"></div>
+        <div class="deal-body">
+          <div class="deal-topline">
+            <span class="deal-category"></span>
+            <button class="icon-button favorite-btn" type="button" aria-label="Save deal">♡</button>
+          </div>
+          <h4 class="deal-title"></h4>
+          <p class="deal-shop"></p>
+          <div class="deal-footer">
+            <div>
+              <strong class="deal-discount"></strong>
+              <p class="deal-savings"></p>
+            </div>
+            <span class="expiry-tag"></span>
+          </div>
+          <button class="grab-button secondary">Grab now</button>
+        </div>
+      </article>
+    </template>
+
+    <script>
+      const STORAGE_KEYS = {
+        user: "grabit-user",
+        deals: "grabit-deals",
+        favorites: "grabit-favorites",
+      };
+
+      const demoOtp = "246810";
+      const quickFilters = [
+        { id: "all", label: "🔥 Trending" },
+        { id: "under100", label: "💸 Under ₹100" },
+        { id: "ending", label: "⏳ Ending Soon" },
+        { id: "limited", label: "⚡ Limited Offer" },
+      ];
+
+      const dealThemes = {
+        pizza: "linear-gradient(135deg, rgba(255,107,0,0.95), rgba(66,28,8,0.86)), radial-gradient(circle at 80% 18%, rgba(255,214,153,0.92), transparent 18%)",
+        burger: "linear-gradient(135deg, rgba(194,97,39,0.95), rgba(35,20,7,0.9)), radial-gradient(circle at 80% 16%, rgba(255,223,128,0.95), transparent 18%)",
+        coffee: "linear-gradient(135deg, rgba(123,78,46,0.95), rgba(27,18,10,0.88)), radial-gradient(circle at 82% 18%, rgba(255,245,219,0.82), transparent 18%)",
+        fashion: "linear-gradient(135deg, rgba(234,94,132,0.95), rgba(53,15,26,0.9)), radial-gradient(circle at 82% 18%, rgba(255,215,229,0.88), transparent 18%)",
+        grocery: "linear-gradient(135deg, rgba(45,150,111,0.95), rgba(10,34,25,0.9)), radial-gradient(circle at 82% 18%, rgba(192,255,220,0.84), transparent 18%)",
+      };
+
+      const defaultDeals = [
+        { id: uid(), shopName: "Slice Theory", title: "50% OFF Pizza", discount: 120, distance: 0.8, expiry: offsetHours(8), category: "Food", theme: "pizza", trending: true, limited: true },
+        { id: uid(), shopName: "Burger Spot", title: "Burger Combo", discount: 80, distance: 0.5, expiry: offsetHours(6), category: "Food", theme: "burger", trending: true, limited: false },
+        { id: uid(), shopName: "Daily Brew", title: "2 Coffees + 1 Free", discount: 90, distance: 1.2, expiry: offsetHours(20), category: "Cafe", theme: "coffee", trending: false, limited: true },
+        { id: uid(), shopName: "Urban Rack", title: "Flat 40% On Streetwear", discount: 150, distance: 1.9, expiry: offsetHours(30), category: "Fashion", theme: "fashion", trending: true, limited: false },
+        { id: uid(), shopName: "Fresh Basket", title: "Weekend Grocery Saver", discount: 60, distance: 0.9, expiry: offsetHours(14), category: "Groceries", theme: "grocery", trending: false, limited: false },
+      ];
+
+      const state = {
+        user: loadJson(STORAGE_KEYS.user, null),
+        deals: loadJson(STORAGE_KEYS.deals, defaultDeals),
+        favorites: new Set(loadJson(STORAGE_KEYS.favorites, [])),
+        activeQuickFilter: "all",
+        savedOnly: false,
+      };
+
+      const elements = {
+        authScreen: document.getElementById("authScreen"),
+        homeScreen: document.getElementById("homeScreen"),
+        googleLoginBtn: document.getElementById("googleLoginBtn"),
+        phoneLoginBtn: document.getElementById("phoneLoginBtn"),
+        phoneFlow: document.getElementById("phoneFlow"),
+        phonePanels: document.querySelectorAll(".phone-flow-panel"),
+        phoneInput: document.getElementById("phoneInput"),
+        otpInput: document.getElementById("otpInput"),
+        sendOtpBtn: document.getElementById("sendOtpBtn"),
+        verifyOtpBtn: document.getElementById("verifyOtpBtn"),
+        backToPhoneBtn: document.getElementById("backToPhoneBtn"),
+        dealsList: document.getElementById("dealsList"),
+        dealTemplate: document.getElementById("dealCardTemplate"),
+        quickFilters: document.getElementById("quickFilters"),
+        categoryFilter: document.getElementById("categoryFilter"),
+        distanceFilter: document.getElementById("distanceFilter"),
+        discountFilter: document.getElementById("discountFilter"),
+        favoritesToggleBtn: document.getElementById("favoritesToggleBtn"),
+        ownerPanel: document.getElementById("ownerPanel"),
+        ownerToggleBtn: document.getElementById("ownerToggleBtn"),
+        closeOwnerPanelBtn: document.getElementById("closeOwnerPanelBtn"),
+        ownerDeals: document.getElementById("ownerDeals"),
+        dealForm: document.getElementById("dealForm"),
+        resetFormBtn: document.getElementById("resetFormBtn"),
+        dealId: document.getElementById("dealId"),
+        shopName: document.getElementById("shopName"),
+        offerTitle: document.getElementById("offerTitle"),
+        discountValue: document.getElementById("discountValue"),
+        distanceValue: document.getElementById("distanceValue"),
+        expiryValue: document.getElementById("expiryValue"),
+        categoryValue: document.getElementById("categoryValue"),
+        imageTheme: document.getElementById("imageTheme"),
+        heroCard: document.getElementById("heroCard"),
+        heroTitle: document.getElementById("heroTitle"),
+        heroDistance: document.getElementById("heroDistance"),
+        heroSavings: document.getElementById("heroSavings"),
+        heroGrabBtn: document.getElementById("heroGrabBtn"),
+      };
+
+      boot();
+
+      function boot() {
+        sanitizeDeals();
+        persistDeals();
+        renderQuickFilters();
+        renderCategoryOptions();
+        bindEvents();
+        resetDealForm();
+        syncAuthState();
+        renderAll();
+      }
+
+      function bindEvents() {
+        elements.googleLoginBtn.addEventListener("click", () => login({ type: "google", name: "Aarthi" }));
+        elements.phoneLoginBtn.addEventListener("click", () => setPhoneStep("phone"));
+        elements.sendOtpBtn.addEventListener("click", handleSendOtp);
+        elements.verifyOtpBtn.addEventListener("click", handleVerifyOtp);
+        elements.backToPhoneBtn.addEventListener("click", () => setPhoneStep("phone"));
+        elements.categoryFilter.addEventListener("change", renderDeals);
+        elements.distanceFilter.addEventListener("change", renderDeals);
+        elements.discountFilter.addEventListener("change", renderDeals);
+        elements.favoritesToggleBtn.addEventListener("click", () => {
+          state.savedOnly = !state.savedOnly;
+          elements.favoritesToggleBtn.textContent = state.savedOnly ? "Show all" : "Saved only";
+          renderDeals();
+        });
+        elements.ownerToggleBtn.addEventListener("click", () => toggleOwnerPanel(true));
+        elements.closeOwnerPanelBtn.addEventListener("click", () => toggleOwnerPanel(false));
+        elements.dealForm.addEventListener("submit", handleDealSubmit);
+        elements.resetFormBtn.addEventListener("click", resetDealForm);
+        elements.heroGrabBtn.addEventListener("click", () => {
+          const featured = getFeaturedDeal();
+          if (featured) toggleFavorite(featured.id, true);
+        });
+        window.addEventListener("resize", syncAuthState);
+      }
+
+      function handleSendOtp() {
+        const raw = elements.phoneInput.value.replace(/\D/g, "");
+        if (raw.length !== 10) {
+          window.alert("Enter a valid 10-digit phone number.");
+          return;
+        }
+        setPhoneStep("otp");
+        elements.otpInput.focus();
+      }
+
+      function handleVerifyOtp() {
+        const value = elements.otpInput.value.replace(/\D/g, "");
+        if (value !== demoOtp) {
+          window.alert("Use demo OTP 246810 to continue.");
+          return;
+        }
+        login({ type: "phone", name: `+91 ${elements.phoneInput.value.trim()}` });
+      }
+
+      function setPhoneStep(step) {
+        elements.phoneFlow.classList.add("open");
+        elements.phoneFlow.setAttribute("aria-hidden", "false");
+        elements.phoneFlow.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        elements.phonePanels.forEach((panel) => {
+          panel.classList.toggle("active", panel.dataset.step === step);
+        });
+      }
+
+      function login(user) {
+        state.user = user;
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
+        elements.phoneFlow.classList.remove("open");
+        elements.phoneFlow.setAttribute("aria-hidden", "true");
+        syncAuthState();
+      }
+
+      function syncAuthState() {
+        const isLoggedIn = Boolean(state.user);
+        elements.authScreen.classList.toggle("active", !isLoggedIn);
+        elements.homeScreen.classList.toggle("active", isLoggedIn);
+        if (window.innerWidth >= 768) {
+          elements.authScreen.classList.toggle("hidden-desktop", isLoggedIn);
+        } else {
+          elements.authScreen.classList.remove("hidden-desktop");
+        }
+      }
+
+      function renderAll() {
+        renderHero();
+        renderDeals();
+        renderOwnerDeals();
+      }
+
+      function renderQuickFilters() {
+        elements.quickFilters.innerHTML = "";
+        quickFilters.forEach((filter) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `filter-pill ${state.activeQuickFilter === filter.id ? "active" : ""}`;
+          button.textContent = filter.label;
+          button.addEventListener("click", () => {
+            state.activeQuickFilter = filter.id;
+            renderQuickFilters();
+            renderDeals();
+          });
+          elements.quickFilters.appendChild(button);
+        });
+      }
+
+      function renderCategoryOptions() {
+        const categories = ["all", ...new Set(state.deals.map((deal) => deal.category))];
+        elements.categoryFilter.innerHTML = categories.map((category) => {
+          const label = category === "all" ? "All" : category;
+          return `<option value="${category}">${label}</option>`;
+        }).join("");
+      }
+
+      function getVisibleDeals() {
+        const now = Date.now();
+        return state.deals
+          .filter((deal) => new Date(deal.expiry).getTime() > now)
+          .filter((deal) => {
+            const categoryFilter = elements.categoryFilter.value || "all";
+            const distanceFilter = elements.distanceFilter.value || "all";
+            const discountFilter = elements.discountFilter.value || "all";
+
+            if (state.savedOnly && !state.favorites.has(deal.id)) return false;
+            if (categoryFilter !== "all" && deal.category !== categoryFilter) return false;
+            if (distanceFilter !== "all" && deal.distance > Number(distanceFilter)) return false;
+            if (discountFilter !== "all" && deal.discount < Number(discountFilter)) return false;
+            if (state.activeQuickFilter === "under100" && deal.discount > 100) return false;
+            if (state.activeQuickFilter === "ending" && !isEndingSoon(deal.expiry)) return false;
+            if (state.activeQuickFilter === "limited" && !deal.limited) return false;
+            if (state.activeQuickFilter === "all") return true;
+            return deal.trending || ["under100", "ending", "limited"].includes(state.activeQuickFilter);
+          })
+          .sort((a, b) => new Date(a.expiry) - new Date(b.expiry) || a.distance - b.distance);
+      }
+
+      function renderDeals() {
+        const deals = getVisibleDeals();
+        elements.dealsList.innerHTML = "";
+
+        if (!deals.length) {
+          elements.dealsList.innerHTML = '<div class="empty-state">No deals match these filters right now. Try another filter or add a new offer.</div>';
+          renderHero();
+          return;
+        }
+
+        deals.forEach((deal) => {
+          const node = elements.dealTemplate.content.firstElementChild.cloneNode(true);
+          node.querySelector(".deal-image").style.background = dealThemes[deal.theme] || dealThemes.pizza;
+          node.querySelector(".deal-category").textContent = deal.trending ? "Trending" : deal.category;
+          node.querySelector(".deal-title").textContent = deal.title;
+          node.querySelector(".deal-shop").textContent = `${deal.shopName} • ${deal.distance.toFixed(1)} km`;
+          node.querySelector(".deal-discount").textContent = `₹${deal.discount} OFF`;
+          node.querySelector(".deal-savings").textContent = `Save ₹${deal.discount} instantly`;
+
+          const expiryTag = node.querySelector(".expiry-tag");
+          expiryTag.textContent = formatExpiry(deal.expiry);
+          expiryTag.classList.toggle("ending-soon", isEndingSoon(deal.expiry));
+
+          const favoriteBtn = node.querySelector(".favorite-btn");
+          const isFavorite = state.favorites.has(deal.id);
+          favoriteBtn.textContent = isFavorite ? "♥" : "♡";
+          favoriteBtn.classList.toggle("active", isFavorite);
+          favoriteBtn.addEventListener("click", () => toggleFavorite(deal.id));
+
+          node.querySelector(".grab-button").addEventListener("click", () => toggleFavorite(deal.id, true));
+          elements.dealsList.appendChild(node);
+        });
+
+        renderHero(deals[0]);
+      }
+
+      function renderHero(featuredDeal = getFeaturedDeal()) {
+        if (!featuredDeal) {
+          elements.heroTitle.textContent = "Fresh deals loading";
+          elements.heroDistance.textContent = "Check back soon";
+          elements.heroSavings.textContent = "New offers nearby";
+          elements.heroCard.style.background = "linear-gradient(135deg, #222, #111)";
+          return;
+        }
+
+        elements.heroTitle.textContent = featuredDeal.title;
+        elements.heroDistance.textContent = `${featuredDeal.distance.toFixed(1)} km`;
+        elements.heroSavings.textContent = `Save ₹${featuredDeal.discount}`;
+        elements.heroCard.style.background = `${dealThemes[featuredDeal.theme] || dealThemes.pizza}, linear-gradient(180deg, transparent 15%, rgba(0, 0, 0, 0.68) 100%)`;
+      }
+
+      function getFeaturedDeal() {
+        const visible = getVisibleDeals();
+        return visible[0] || null;
+      }
+
+      function toggleFavorite(id, forceOn = false) {
+        if (forceOn) {
+          state.favorites.add(id);
+        } else if (state.favorites.has(id)) {
+          state.favorites.delete(id);
+        } else {
+          state.favorites.add(id);
+        }
+        localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify([...state.favorites]));
+        renderDeals();
+      }
+
+      function toggleOwnerPanel(open) {
+        elements.ownerPanel.classList.toggle("open", open);
+        elements.ownerPanel.setAttribute("aria-hidden", String(!open));
+      }
+
+      function handleDealSubmit(event) {
+        event.preventDefault();
+
+        const payload = {
+          id: elements.dealId.value || uid(),
+          shopName: elements.shopName.value.trim(),
+          title: elements.offerTitle.value.trim(),
+          discount: Number(elements.discountValue.value),
+          distance: Number(elements.distanceValue.value),
+          expiry: new Date(elements.expiryValue.value).toISOString(),
+          category: elements.categoryValue.value,
+          theme: elements.imageTheme.value,
+          trending: true,
+          limited: true,
+        };
+
+        const existingIndex = state.deals.findIndex((deal) => deal.id === payload.id);
+        if (existingIndex >= 0) {
+          state.deals[existingIndex] = payload;
+        } else {
+          state.deals.unshift(payload);
+        }
+
+        sanitizeDeals();
+        persistDeals();
+        renderCategoryOptions();
+        renderAll();
+        resetDealForm();
+        toggleOwnerPanel(false);
+      }
+
+      function renderOwnerDeals() {
+        elements.ownerDeals.innerHTML = "";
+        const deals = [...state.deals].sort((a, b) => new Date(a.expiry) - new Date(b.expiry));
+        deals.forEach((deal) => {
+          const item = document.createElement("article");
+          item.className = "owner-item";
+          item.innerHTML = `
+            <h4>${deal.title}</h4>
+            <p>${deal.shopName} • ₹${deal.discount} OFF • ${deal.distance.toFixed(1)} km</p>
+            <p>${formatExpiry(deal.expiry)} • ${deal.category}</p>
+            <div class="owner-actions">
+              <button class="edit-btn" type="button">Edit</button>
+              <button class="delete-btn" type="button">Delete</button>
+            </div>
+          `;
+          item.querySelector(".edit-btn").addEventListener("click", () => populateDealForm(deal));
+          item.querySelector(".delete-btn").addEventListener("click", () => deleteDeal(deal.id));
+          elements.ownerDeals.appendChild(item);
+        });
+      }
+
+      function populateDealForm(deal) {
+        elements.dealId.value = deal.id;
+        elements.shopName.value = deal.shopName;
+        elements.offerTitle.value = deal.title;
+        elements.discountValue.value = deal.discount;
+        elements.distanceValue.value = deal.distance;
+        elements.expiryValue.value = toLocalDatetimeValue(deal.expiry);
+        elements.categoryValue.value = deal.category;
+        elements.imageTheme.value = deal.theme;
+      }
+
+      function deleteDeal(id) {
+        state.deals = state.deals.filter((deal) => deal.id !== id);
+        state.favorites.delete(id);
+        persistDeals();
+        localStorage.setItem(STORAGE_KEYS.favorites, JSON.stringify([...state.favorites]));
+        renderCategoryOptions();
+        renderAll();
+      }
+
+      function resetDealForm() {
+        elements.dealForm.reset();
+        elements.dealId.value = "";
+        elements.expiryValue.value = nextLocalDatetime(10);
+      }
+
+      function sanitizeDeals() {
+        state.deals = state.deals
+          .filter((deal) => deal && deal.expiry)
+          .filter((deal) => new Date(deal.expiry).getTime() > Date.now())
+          .map((deal) => ({
+            ...deal,
+            distance: Number(deal.distance),
+            discount: Number(deal.discount),
+            trending: Boolean(deal.trending),
+            limited: Boolean(deal.limited),
+            theme: deal.theme || "pizza",
+          }));
+      }
+
+      function persistDeals() {
+        localStorage.setItem(STORAGE_KEYS.deals, JSON.stringify(state.deals));
+      }
+
+      function formatExpiry(expiry) {
+        const diff = new Date(expiry).getTime() - Date.now();
+        const hours = Math.max(0, Math.ceil(diff / (1000 * 60 * 60)));
+        if (hours <= 12) return "Ends Today";
+        if (hours <= 24) return `Ends in ${hours}h`;
+        return `Ends in ${Math.ceil(hours / 24)}d`;
+      }
+
+      function isEndingSoon(expiry) {
+        return new Date(expiry).getTime() - Date.now() <= 1000 * 60 * 60 * 12;
+      }
+
+      function loadJson(key, fallback) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw ? JSON.parse(raw) : fallback;
+        } catch {
+          return fallback;
+        }
+      }
+
+      function offsetHours(hours) {
+        return new Date(Date.now() + hours * 60 * 60 * 1000).toISOString();
+      }
+
+      function nextLocalDatetime(offset) {
+        const date = new Date(Date.now() + offset * 60 * 60 * 1000);
+        const localOffset = date.getTimezoneOffset();
+        const localDate = new Date(date.getTime() - localOffset * 60000);
+        return localDate.toISOString().slice(0, 16);
+      }
+
+      function toLocalDatetimeValue(isoString) {
+        const date = new Date(isoString);
+        const localOffset = date.getTimezoneOffset();
+        return new Date(date.getTime() - localOffset * 60000).toISOString().slice(0, 16);
+      }
+
+      function uid() {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+          return window.crypto.randomUUID();
+        }
+        return `deal-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      }
+    </script>
+  </body>
+</html>
